@@ -1,0 +1,6 @@
+# Example AT command dictionary
+AT=OK
+ATE[01]=OK
+ATI=Modem Emulator v1.0
+AT+COPS=+COPS: 0,0,"Test Operator"
+AT+CPIN=+CPIN: READY
