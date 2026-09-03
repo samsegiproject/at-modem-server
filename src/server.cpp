@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pty.h>
-#include <termios.h>   // добавлено для настройки slave
+#include <termios.h>
 
 Server* Server::instance = nullptr;
 
@@ -80,13 +80,11 @@ void Server::run() {
 
 void Server::stop() {
     running_ = false;
-    // Закрываем slave-дескрипторы
     for (int fd : pty_slave_fds_) {
         ::close(fd);
     }
     pty_slave_fds_.clear();
 
-    // Затем shutdown master-дескрипторы
     for (int fd : pty_master_fds_) {
         ::shutdown(fd, SHUT_RDWR);
     }

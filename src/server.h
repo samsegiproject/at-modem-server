@@ -33,7 +33,7 @@ private:
     bool usePty_;
     std::vector<std::string> devices_;
     std::vector<int> pty_master_fds_;
-    std::vector<int> pty_slave_fds_;      // <-- добавлено
+    std::vector<int> pty_slave_fds_;
     std::vector<std::string> pty_slave_paths_;
 };
 
