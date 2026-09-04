@@ -1,7 +1,4 @@
 #include "serial_port.h"
-#include <cstring>
-#include <cerrno>
-#include <iostream>
 
 SerialPort::SerialPort() : fd_(-1), mode_set_(false), is_master_pty_(false) {
     std::memset(&old_termios_, 0, sizeof(old_termios_));
@@ -49,7 +46,8 @@ bool SerialPort::setRawMode() {
         if (is_master_pty_) {
             std::cerr << "tcgetattr failed (pty master?): " << std::strerror(errno) << std::endl;
             return true;
-        } else {
+        }
+        else {
             std::cerr << "tcgetattr failed: " << std::strerror(errno) << std::endl;
             return false;
         }
@@ -60,8 +58,58 @@ bool SerialPort::setRawMode() {
 
     cfmakeraw(&tty);
 
-    tty.c_cflag &= ~CRTSCTS;
+    // data bits
+    tty.c_cflag &= ~CSIZE;
+    switch (config_.dataBits) {
+    case 5: tty.c_cflag |= CS5; break;
+    case 6: tty.c_cflag |= CS6; break;
+    case 7: tty.c_cflag |= CS7; break;
+    case 8: default: tty.c_cflag |= CS8; break;
+    }
+
+    // parity
+    if (config_.parity == 'E') {
+        tty.c_cflag |= PARENB;
+        tty.c_cflag &= ~PARODD;
+    }
+    else if (config_.parity == 'O') {
+        tty.c_cflag |= PARENB | PARODD;
+    }
+    else {
+        tty.c_cflag &= ~PARENB;
+    }
+
+    // stop bits
+    if (config_.stopBits == 2) {
+        tty.c_cflag |= CSTOPB;
+    }
+    else {
+        tty.c_cflag &= ~CSTOPB;
+    }
+
+    // hardware flow control
+    if (config_.hwFlow) {
+        tty.c_cflag |= CRTSCTS;
+    }
+    else {
+        tty.c_cflag &= ~CRTSCTS;
+    }
+
+    // software flow control off
     tty.c_iflag &= ~(IXON | IXOFF | IXANY);
+
+    // baud rate
+    speed_t speed = B115200;
+    switch (config_.baud) {
+    case 9600: speed = B9600; break;
+    case 19200: speed = B19200; break;
+    case 38400: speed = B38400; break;
+    case 57600: speed = B57600; break;
+    case 115200: speed = B115200; break;
+    default: speed = B115200; break;
+    }
+    cfsetispeed(&tty, speed);
+    cfsetospeed(&tty, speed);
 
     tty.c_cc[VMIN] = 0;
     tty.c_cc[VTIME] = 1;

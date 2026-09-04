@@ -12,8 +12,9 @@
 class Server {
 public:
     Server(const std::vector<std::string>& devices,
-           const std::string& dictFile,
-           bool usePty = false);
+        const std::string& dictFile,
+        const SerialPort::Config& portConfig,
+        bool usePty = false);
     ~Server();
 
     void run();
@@ -28,12 +29,13 @@ private:
     bool sendAnswer(int fd, const std::string& answer);
 
     std::vector<std::thread> threads_;
-    std::atomic<bool> running_{false};
+    std::atomic<bool> running_{ false };
     Dictionary dict_;
     bool usePty_;
     std::vector<std::string> devices_;
     std::vector<int> pty_master_fds_;
     std::vector<int> pty_slave_fds_;
     std::vector<std::string> pty_slave_paths_;
+    SerialPort::Config portConfig_;
 };
 

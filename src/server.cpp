@@ -14,8 +14,9 @@ Server* Server::instance = nullptr;
 
 Server::Server(const std::vector<std::string>& devices,
     const std::string& dictFile,
+    const SerialPort::Config& portConfig,
     bool usePty)
-    : running_(false), usePty_(usePty), devices_(devices) {
+    : running_(false), usePty_(usePty), devices_(devices), portConfig_(portConfig) {
     instance = this;
 
     if (!dict_.loadFromFile(dictFile)) {
@@ -29,12 +30,10 @@ Server::Server(const std::vector<std::string>& devices,
             throw std::runtime_error("openpty failed");
         }
 
-        // Сохраняем slave-дескриптор, чтобы pty не закрылся
         pty_slave_fds_.push_back(slave);
         pty_master_fds_.push_back(master);
         pty_slave_paths_.push_back(slave_name);
 
-        // Настраиваем slave в raw mode, чтобы отключить эхо и обработку сигналов
         struct termios tty;
         if (tcgetattr(slave, &tty) == 0) {
             cfmakeraw(&tty);
@@ -92,6 +91,7 @@ void Server::stop() {
 
 void Server::processDevice(const std::string& device) {
     SerialPort port;
+    port.setConfig(portConfig_);
     if (!port.open(device)) {
         std::cerr << "Failed to open device: " << device << std::endl;
         return;
