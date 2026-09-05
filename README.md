@@ -44,7 +44,7 @@ at-modem-server/
 │   └── utils.h
 ├── tests/
 │   └── test_main.cpp
-├── dictionary.txt            # example dictionary
+├── dictionary.txt
 ├── CMakeLists.txt
 ├── Makefile
 ├── .gitignore
